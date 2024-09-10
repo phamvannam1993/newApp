@@ -1,12 +1,19 @@
 import { Hono } from 'hono'
-import { renderer } from './renderer'
 
-const app = new Hono()
+const app = new Hono<{ Bindings: CloudflareBindings }>()
 
-app.use(renderer)
+app.get('/:id', async (c) => {
+  const userId = c.req.param("id");
+  console.log(c.env)
+  try {
+      const stmt = c.env.DB.prepare('SELECT * FROM Customers LIMIT 3');
+  const { results } = await stmt.all();
+    return c.json(results);
+  } catch (e) {
+    return c.json({ err: e.message }, 500);
+  }
 
-app.get('/', (c) => {
-  return c.render(<h1>Hello!</h1>)
+  return c.text('Hello Hono!')
 })
 
 export default app
